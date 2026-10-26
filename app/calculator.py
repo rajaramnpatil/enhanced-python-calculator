@@ -1,10 +1,13 @@
 
+from app.input_validators import InputValidator
+from app.exceptions import ValidationError
+
 from app.calculation import Calculation
 from app.operations import OperationFactory
 
 
 class Calculator:
-    """Interactive command-line calculator."""
+    """Enhanced Interactive command-line calculator."""
 
     def __init__(self):
         self.history = []
@@ -60,8 +63,13 @@ class Calculator:
                     print("Calculation history cleared.")
 
                 elif command in OperationFactory._operations:
-                    a = float(input("Enter first number: "))
-                    b = float(input("Enter second number: "))
+                    a = InputValidator.validate_number(
+                    input("Enter first number: ")
+                    )
+
+                    b = InputValidator.validate_number(
+                    input("Enter second number: ")
+                    )
 
                     result = self.perform_calculation(
                         command, a, b
@@ -71,7 +79,7 @@ class Calculator:
                 else:
                     print("Invalid command. Type 'help'.")
 
-            except ValueError as error:
+            except (ValueError, ValidationError) as error:
                 print(f"Error: {error}")
 
             except (KeyboardInterrupt, EOFError):
