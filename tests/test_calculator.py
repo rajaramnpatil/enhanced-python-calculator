@@ -95,3 +95,54 @@ def test_repl_eof(capsys):
 
     output = capsys.readouterr().out
     assert "Calculator closed" in output
+
+def test_calculator_undo():
+    calculator = Calculator()
+
+    calculator.perform_calculation("add", 10, 5)
+    calculator.perform_calculation("multiply", 2, 3)
+
+    calculator.undo()
+
+    assert len(calculator.history) == 1
+    assert calculator.history[0].result == 15
+
+
+def test_calculator_redo():
+    calculator = Calculator()
+
+    calculator.perform_calculation("add", 10, 5)
+    calculator.undo()
+    calculator.redo()
+
+    assert len(calculator.history) == 1
+    assert calculator.history[0].result == 15
+
+
+def test_calculator_redo_cleared_after_new_calculation():
+    calculator = Calculator()
+
+    calculator.perform_calculation("add", 10, 5)
+    calculator.undo()
+
+    calculator.perform_calculation("multiply", 2, 3)
+    calculator.redo()
+
+    assert len(calculator.history) == 1
+    assert calculator.history[0].operation == "multiply"
+
+
+def test_undo_redo_repl(capsys):
+    calculator = Calculator()
+
+    with patch(
+        "builtins.input",
+        side_effect=["add", "10", "5", "undo", "redo", "exit"],
+    ):
+        calculator.repl()
+
+    output = capsys.readouterr().out
+
+    assert "Undo successful" in output
+    assert "Redo successful" in output
+    assert len(calculator.history) == 1
