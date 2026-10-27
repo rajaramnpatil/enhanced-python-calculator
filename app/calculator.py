@@ -1,4 +1,7 @@
 
+from app import command_definitions
+from app.command_registry import get_help_text
+
 from app.calculator_config import CalculatorConfig
 from app.history import HistoryManager
 from app.logger import setup_logger, LoggingObserver
@@ -61,18 +64,8 @@ class Calculator:
             )
 
     def show_help(self):
-        print("\nAvailable commands:")
-        for operation in OperationFactory._operations:
-            print(f"  {operation}")
-
-        print("  history")
-        print("  clear")
-        print("  help")
-        print("  undo")
-        print("  redo")
-        print("  save")
-        print("  load")
-        print("  exit")
+        """Display automatically registered commands."""
+        print(get_help_text())
 
     def repl(self):
         print("\nWelcome to Enhanced Python Calculator!")
