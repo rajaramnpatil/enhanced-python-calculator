@@ -6,6 +6,9 @@ from unittest.mock import patch
 from app.calculator import Calculator
 from app.exceptions import HistoryError
 
+from colorama import Fore, Style
+from app.terminal_colors import TerminalColors
+
 def test_perform_calculation():
     calculator = Calculator()
 
@@ -275,3 +278,40 @@ def test_save_history_error_is_handled(tmp_path, capsys):
         calculator.save_history()
 
     assert "Error saving history" in capsys.readouterr().out
+
+
+def test_colored_success_message(capsys, tmp_path):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=False,
+    )
+    calculator = Calculator(config)
+
+    calculator.perform_calculation("add", 10, 5)
+    calculator.undo()
+
+    output = capsys.readouterr().out
+
+    assert (
+        f"{Fore.GREEN}Undo successful.{Style.RESET_ALL}"
+        in output
+    )
+
+
+def test_colored_warning_message(capsys, tmp_path):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=False,
+    )
+    calculator = Calculator(config)
+
+    calculator.undo()
+
+    output = capsys.readouterr().out
+
+    assert (
+        f"{Fore.YELLOW}Nothing to undo.{Style.RESET_ALL}"
+        in output
+    )
