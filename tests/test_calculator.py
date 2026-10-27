@@ -196,3 +196,38 @@ def test_manual_save_and_load(tmp_path):
 
     assert len(calculator.history) == 1
     assert calculator.history[0].result == 15
+
+def test_max_history_size(tmp_path):
+    config = CalculatorConfig(
+        max_history_size=2,
+        auto_save=False,
+        log_dir=tmp_path / "logs",
+    )
+
+    calculator = Calculator(config)
+
+    calculator.perform_calculation("add", 1, 2)
+    calculator.perform_calculation("multiply", 2, 3)
+    calculator.perform_calculation("subtract", 10, 5)
+
+    assert len(calculator.history) == 2
+    assert calculator.history[0].operation == "multiply"
+    assert calculator.history[1].operation == "subtract"
+
+
+def test_configured_input_limit(tmp_path):
+    config = CalculatorConfig(
+        max_input_value=100,
+        auto_save=False,
+        log_dir=tmp_path / "logs",
+    )
+
+    calculator = Calculator(config)
+
+    with patch(
+        "builtins.input",
+        side_effect=["add", "150", "10", "exit"],
+    ):
+        calculator.repl()
+
+    assert len(calculator.history) == 0

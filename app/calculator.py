@@ -40,15 +40,23 @@ class Calculator:
             )
 
 
+    
     def perform_calculation(self, operation, a, b):
         calculation = Calculation(operation, a, b)
 
-        # Save history only after a successful calculation.
         self.caretaker.save_state(self.history)
-
         self.history.append(calculation)
+
+        # Keep only the latest configured number of calculations.
+        if len(self.history) > self.config.max_history_size:
+            self.history = self.history[
+                -self.config.max_history_size:
+            ]
+
         self.subject.notify("calculation", calculation)
+
         return calculation.result
+
 
     def show_history(self):
         if not self.history:
@@ -107,11 +115,13 @@ class Calculator:
 
                 elif command in OperationFactory._operations:
                     a = InputValidator.validate_number(
-                    input("Enter first number: ")
+                    input("Enter first number: "),
+                    self.config.max_input_value,
                     )
 
                     b = InputValidator.validate_number(
-                    input("Enter second number: ")
+                    input("Enter second number: "),
+                    self.config.max_input_value,
                     )
 
                     result = self.perform_calculation(
