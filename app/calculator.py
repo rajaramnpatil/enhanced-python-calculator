@@ -1,4 +1,5 @@
 
+from app.calculator_memento import CalculatorCaretaker
 from app.input_validators import InputValidator
 from app.exceptions import ValidationError
 
@@ -11,9 +12,14 @@ class Calculator:
 
     def __init__(self):
         self.history = []
+        self.caretaker = CalculatorCaretaker()
 
     def perform_calculation(self, operation, a, b):
         calculation = Calculation(operation, a, b)
+
+        # Save history only after a successful calculation.
+        self.caretaker.save_state(self.history)
+
         self.history.append(calculation)
         return calculation.result
 
@@ -38,6 +44,8 @@ class Calculator:
         print("  history")
         print("  clear")
         print("  help")
+        print("  undo")
+        print("  redo")
         print("  exit")
 
     def repl(self):
@@ -59,9 +67,17 @@ class Calculator:
                     self.show_history()
 
                 elif command == "clear":
-                    self.history.clear()
+                    if self.history:
+                        self.caretaker.save_state(self.history)
+                        self.history.clear()
+
                     print("Calculation history cleared.")
 
+                elif command == "undo":
+                    self.undo()
+
+                elif command == "redo":
+                    self.redo()
                 elif command in OperationFactory._operations:
                     a = InputValidator.validate_number(
                     input("Enter first number: ")
@@ -85,6 +101,29 @@ class Calculator:
             except (KeyboardInterrupt, EOFError):
                 print("\nCalculator closed.")
                 break
+    
+    def undo(self):
+        """Undo the last history change."""
+        previous = self.caretaker.undo(self.history)
+
+        if previous is None:
+            print("Nothing to undo.")
+            return
+
+        self.history = previous
+        print("Undo successful.")
+
+
+    def redo(self):
+        """Redo the last undone history change."""
+        next_state = self.caretaker.redo(self.history)
+
+        if next_state is None:
+            print("Nothing to redo.")
+            return
+
+        self.history = next_state
+        print("Redo successful.")
 
 
 if __name__ == "__main__":
