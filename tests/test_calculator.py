@@ -1,4 +1,5 @@
 
+from app.calculator_config import CalculatorConfig
 import pytest
 from unittest.mock import patch
 
@@ -146,3 +147,52 @@ def test_undo_redo_repl(capsys):
     assert "Undo successful" in output
     assert "Redo successful" in output
     assert len(calculator.history) == 1
+
+def test_calculator_auto_save(tmp_path):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=True,
+    )
+
+    calculator = Calculator(config)
+    calculator.perform_calculation("add", 10, 5)
+
+    assert config.history_file_path.exists()
+
+    loaded = calculator.history_manager.load()
+
+    assert len(loaded) == 1
+    assert loaded[0].result == 15
+
+
+def test_auto_save_after_undo(tmp_path):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=True,
+    )
+
+    calculator = Calculator(config)
+    calculator.perform_calculation("add", 10, 5)
+    calculator.undo()
+
+    assert calculator.history_manager.load() == []
+
+
+def test_manual_save_and_load(tmp_path):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=False,
+    )
+
+    calculator = Calculator(config)
+    calculator.perform_calculation("add", 10, 5)
+
+    calculator.save_history()
+    calculator.history.clear()
+    calculator.load_history()
+
+    assert len(calculator.history) == 1
+    assert calculator.history[0].result == 15

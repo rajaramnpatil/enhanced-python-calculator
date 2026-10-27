@@ -1,4 +1,9 @@
 
+from app.calculator_config import CalculatorConfig
+from app.history import HistoryManager
+from app.logger import setup_logger, LoggingObserver
+from app.observers import CalculatorSubject, AutoSaveObserver
+
 from app.calculator_memento import CalculatorCaretaker
 from app.input_validators import InputValidator
 from app.exceptions import ValidationError
@@ -10,9 +15,27 @@ from app.operations import OperationFactory
 class Calculator:
     """Enhanced Interactive command-line calculator."""
 
-    def __init__(self):
+    
+    def __init__(self, config=None):
+        self.config = config or CalculatorConfig()
         self.history = []
         self.caretaker = CalculatorCaretaker()
+
+        self.subject = CalculatorSubject()
+
+        self.logger = setup_logger(self.config)
+        self.subject.attach(LoggingObserver(self.logger))
+
+        self.history_manager = HistoryManager(self.config)
+
+        if self.config.auto_save:
+            self.subject.attach(
+                AutoSaveObserver(
+                    self.history_manager,
+                    lambda: self.history,
+                )
+            )
+
 
     def perform_calculation(self, operation, a, b):
         calculation = Calculation(operation, a, b)
@@ -21,6 +44,7 @@ class Calculator:
         self.caretaker.save_state(self.history)
 
         self.history.append(calculation)
+        self.subject.notify("calculation", calculation)
         return calculation.result
 
     def show_history(self):
@@ -46,6 +70,8 @@ class Calculator:
         print("  help")
         print("  undo")
         print("  redo")
+        print("  save")
+        print("  load")
         print("  exit")
 
     def repl(self):
@@ -70,6 +96,7 @@ class Calculator:
                     if self.history:
                         self.caretaker.save_state(self.history)
                         self.history.clear()
+                        self.subject.notify("clear")
 
                     print("Calculation history cleared.")
 
@@ -78,6 +105,13 @@ class Calculator:
 
                 elif command == "redo":
                     self.redo()
+
+                elif command == "save":
+                    self.save_history()
+
+                elif command == "load":
+                    self.load_history()
+
                 elif command in OperationFactory._operations:
                     a = InputValidator.validate_number(
                     input("Enter first number: ")
@@ -111,6 +145,7 @@ class Calculator:
             return
 
         self.history = previous
+        self.subject.notify("undo")
         print("Undo successful.")
 
 
@@ -123,7 +158,25 @@ class Calculator:
             return
 
         self.history = next_state
+        self.subject.notify("redo")
         print("Redo successful.")
+    
+    def save_history(self):
+        """Manually save history to CSV."""
+        self.history_manager.save(self.history)
+        print("History saved successfully.")
+
+
+    def load_history(self):
+        """Load history from CSV."""
+        loaded_history = self.history_manager.load()
+
+        # Allow undo after loading a different history.
+        if loaded_history != self.history:
+            self.caretaker.save_state(self.history)
+            self.history = loaded_history
+
+        print("History loaded successfully.")
 
 
 if __name__ == "__main__":

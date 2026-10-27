@@ -27,3 +27,16 @@ class CalculatorSubject:
     def notify(self, event, calculation=None):
         for observer in self._observers:
             observer.update(event, calculation)
+
+class AutoSaveObserver(CalculatorObserver):
+    """Automatically saves history when it changes."""
+
+    def __init__(self, history_manager, history_provider):
+        self.history_manager = history_manager
+        self.history_provider = history_provider
+
+    def update(self, event, calculation=None):
+        if event in ("calculation", "undo", "redo", "clear"):
+            self.history_manager.save(
+                self.history_provider()
+            )
