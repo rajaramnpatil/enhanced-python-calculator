@@ -14,6 +14,7 @@ from app.exceptions import HistoryError
 from app.calculation import Calculation
 from app.operations import OperationFactory
 
+from app.terminal_colors import TerminalColors
 
 class Calculator:
     """Enhanced Interactive command-line calculator."""
@@ -21,6 +22,9 @@ class Calculator:
     
     def __init__(self, config=None):
         self.config = config or CalculatorConfig()
+
+        TerminalColors.initialize()
+        
         self.history = []
         self.caretaker = CalculatorCaretaker()
 
@@ -60,7 +64,7 @@ class Calculator:
 
     def show_history(self):
         if not self.history:
-            print("No calculation history available.")
+            print(TerminalColors.warning("No calculation history available."))
             return
 
         for index, calculation in enumerate(self.history, start=1):
@@ -76,8 +80,8 @@ class Calculator:
         print(get_help_text())
 
     def repl(self):
-        print("\nWelcome to Enhanced Python Calculator!")
-        print("Type 'help' to see available commands.")
+        print(TerminalColors.info("\nWelcome to Enhanced Python Calculator!"))
+        print(TerminalColors.info("Type 'help' to see available commands."))
 
         while True:
             try:
@@ -99,7 +103,7 @@ class Calculator:
                         self.history.clear()
                         self.subject.notify("clear")
 
-                    print("Calculation history cleared.")
+                    print(TerminalColors.success("Calculation history cleared."))
 
                 elif command == "undo":
                     self.undo()
@@ -127,13 +131,13 @@ class Calculator:
                     result = self.perform_calculation(
                         command, a, b
                     )
-                    print(f"Result: {result}")
+                    print(TerminalColors.success(f"Result: {result}"))
 
                 else:
-                    print("Invalid command. Type 'help'.")
+                    print(TerminalColors.error("Invalid command. Type 'help'."))
 
             except (ValueError, ValidationError) as error:
-                print(f"Error: {error}")
+                print(TerminalColors.error(f"Error: {error}"))
 
             except (KeyboardInterrupt, EOFError):
                 print("\nCalculator closed.")
@@ -144,12 +148,12 @@ class Calculator:
         previous = self.caretaker.undo(self.history)
 
         if previous is None:
-            print("Nothing to undo.")
+            print(TerminalColors.warning("Nothing to undo."))
             return
 
         self.history = previous
         self.subject.notify("undo")
-        print("Undo successful.")
+        print(TerminalColors.success("Undo successful."))
 
 
     def redo(self):
@@ -157,23 +161,23 @@ class Calculator:
         next_state = self.caretaker.redo(self.history)
 
         if next_state is None:
-            print("Nothing to redo.")
+            print(TerminalColors.warning("Nothing to redo."))
             return
 
         self.history = next_state
         self.subject.notify("redo")
-        print("Redo successful.")
+        print(TerminalColors.success("Redo successful."))
     
     
     def save_history(self):
         """Save history to CSV."""
         try:
             self.history_manager.save(self.history)
-            print("History saved successfully.")
+            print(TerminalColors.success("History saved successfully."))
 
         except HistoryError as exc:
             self.logger.error("Failed to save history: %s", exc)
-            print(f"Error saving history: {exc}")
+            print(TerminalColors.error(f"Error saving history: {exc}"))
 
 
     def load_history(self):
@@ -186,11 +190,11 @@ class Calculator:
                 self.caretaker.save_state(self.history)
                 self.history = loaded_history
 
-            print("History loaded successfully.")
+            print(TerminalColors.success("History loaded successfully."))
 
         except HistoryError as exc:
             self.logger.error("Failed to load history: %s", exc)
-            print(f"Error loading history: {exc}")
+            print(TerminalColors.error(f"Error loading history: {exc}"))
 
 
 if __name__ == "__main__":

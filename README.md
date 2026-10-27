@@ -16,6 +16,7 @@ The application also includes automated testing with pytest and Continuous Integ
 - **Memento Pattern:** Supports undo and redo of calculation history changes.
 - **Observer Pattern:** Supports calculation logging and automatic history saving.
 - **Decorator Pattern:** Automatically registers commands for the help menu.
+- **Color-Coded Terminal Output:** Uses colorama to display successful operations in green, errors in red,informational messages in cyan, and warnings in yellow.
 - **pandas History Management:** Saves and loads calculation history using CSV files.
 - **Input Validation:** Validates numeric input and applies configurable limits.
 - **Error Handling:** Handles invalid input, calculation errors, and CSV file errors.
@@ -40,7 +41,8 @@ enhanced-python-calculator/
 │   ├── input_validators.py
 │   ├── logger.py
 │   ├── observers.py
-│   └── operations.py
+│   ├── operations.py
+│   └── terminal_colors.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_calculator.py
@@ -51,7 +53,8 @@ enhanced-python-calculator/
 │   ├── test_history.py
 │   ├── test_input_validators.py
 │   ├── test_observers.py
-│   └── test_operations.py
+│   ├── test_operations.py
+│   └── test_terminal_colors.py
 ├── .github/
 │   └── workflows/
 │       └── python-app.yml
@@ -71,17 +74,16 @@ enhanced-python-calculator/
 - pytest-cov
 - Git and GitHub
 - GitHub Actions
+- colorama
 
 ## Installation and Setup
 
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone git@github.com:rajaramnpatil/enhanced-python-calculator.git
 cd enhanced-python-calculator
 ```
-
-Replace `<your-repository-url>` with the actual GitHub repository URL.
 
 ### 2. Create a virtual environment
 
@@ -294,6 +296,32 @@ For CSV history operations, the application uses a custom `HistoryError` excepti
 
 A failed CSV load does not replace the existing calculation history.
 
+## Optional Features
+
+1. Dynamic Help Menu (Decorator Pattern)
+
+Uses the Decorator Pattern to automatically register commands and display them in the help menu.
+
+Makes it easier to add new commands without manually updating the help menu.
+
+Implemented in app/command_registry.py and app/command_definitions.py.
+
+2. Color-Coded Terminal Output (colorama)
+
+Uses the colorama library to improve terminal readability.
+
+Green: Successful operations.
+
+Red: Errors and invalid commands.
+
+Cyan: Welcome and informational messages.
+
+Yellow: Warnings.
+
+Implemented in app/terminal_colors.py.
+
+Both optional features are covered by automated tests.
+
 ## Automated Testing
 
 The application uses pytest for automated testing.
@@ -315,8 +343,8 @@ python -m pytest tests/ \
 
 Latest local test results:
 
-- **117 tests passed**
-- **97.51% code coverage**
+- **124 tests passed**
+- **98.10% code coverage**
 - **90% minimum coverage requirement achieved**
 
 Tests cover arithmetic operations, configuration, input validation, calculation history, design patterns, REPL commands, and CSV error handling.
