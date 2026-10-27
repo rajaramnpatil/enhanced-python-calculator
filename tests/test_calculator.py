@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch
 
 from app.calculator import Calculator
-
+from app.exceptions import HistoryError
 
 def test_perform_calculation():
     calculator = Calculator()
@@ -231,3 +231,47 @@ def test_configured_input_limit(tmp_path):
         calculator.repl()
 
     assert len(calculator.history) == 0
+
+
+def test_load_history_error_preserves_existing_history(
+    tmp_path, capsys
+):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=False,
+    )
+
+    calculator = Calculator(config)
+    calculator.perform_calculation("add", 10, 5)
+
+    original_history = calculator.history.copy()
+
+    with patch.object(
+        calculator.history_manager,
+        "load",
+        side_effect=HistoryError("Invalid CSV file"),
+    ):
+        calculator.load_history()
+
+    assert calculator.history == original_history
+    assert "Error loading history" in capsys.readouterr().out
+
+
+def test_save_history_error_is_handled(tmp_path, capsys):
+    config = CalculatorConfig(
+        history_dir=tmp_path / "history",
+        log_dir=tmp_path / "logs",
+        auto_save=False,
+    )
+
+    calculator = Calculator(config)
+
+    with patch.object(
+        calculator.history_manager,
+        "save",
+        side_effect=HistoryError("Permission denied"),
+    ):
+        calculator.save_history()
+
+    assert "Error saving history" in capsys.readouterr().out

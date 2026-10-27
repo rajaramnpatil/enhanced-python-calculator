@@ -9,3 +9,7 @@ class ValidationError(CalculatorError):
 
 class OperationError(CalculatorError):
     """Raised when a calculation cannot be performed."""
+
+class HistoryError(CalculatorError):
+    """Raised when saving or loading calculation history fails."""
+    pass

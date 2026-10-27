@@ -10,7 +10,7 @@ from app.observers import CalculatorSubject, AutoSaveObserver
 from app.calculator_memento import CalculatorCaretaker
 from app.input_validators import InputValidator
 from app.exceptions import ValidationError
-
+from app.exceptions import HistoryError
 from app.calculation import Calculation
 from app.operations import OperationFactory
 
@@ -164,22 +164,33 @@ class Calculator:
         self.subject.notify("redo")
         print("Redo successful.")
     
+    
     def save_history(self):
-        """Manually save history to CSV."""
-        self.history_manager.save(self.history)
-        print("History saved successfully.")
+        """Save history to CSV."""
+        try:
+            self.history_manager.save(self.history)
+            print("History saved successfully.")
+
+        except HistoryError as exc:
+            self.logger.error("Failed to save history: %s", exc)
+            print(f"Error saving history: {exc}")
 
 
     def load_history(self):
-        """Load history from CSV."""
-        loaded_history = self.history_manager.load()
+        """Load history from CSV safely."""
+        try:
+            loaded_history = self.history_manager.load()
 
-        # Allow undo after loading a different history.
-        if loaded_history != self.history:
-            self.caretaker.save_state(self.history)
-            self.history = loaded_history
+            # Allow undo after loading a different history.
+            if loaded_history != self.history:
+                self.caretaker.save_state(self.history)
+                self.history = loaded_history
 
-        print("History loaded successfully.")
+            print("History loaded successfully.")
+
+        except HistoryError as exc:
+            self.logger.error("Failed to load history: %s", exc)
+            print(f"Error loading history: {exc}")
 
 
 if __name__ == "__main__":
