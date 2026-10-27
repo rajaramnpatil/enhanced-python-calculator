@@ -13,7 +13,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
-
+coverage.xml
 # Application output
 logs/
 history/
