@@ -113,14 +113,7 @@ python -m pip install -r requirements.txt
 
 ### 4. Configure environment variables
 
-Copy `.env.example` to `.env`.
-
-On Linux, macOS, or WSL:
-
-```bash
-cp .env.example .env
-```
-
+.env is for your reference to configure environment variables used in the application.
 Update the values if needed.
 
 ## Running the Calculator
@@ -235,6 +228,25 @@ It automatically registers command descriptions for the help menu.
 This makes it easier to maintain the help menu without manually updating the displayed list.
 
 The Decorator pattern was implemented as an optional feature for the project.
+
+## Logging
+
+The calculator uses Python's built-in `logging` module to record application activities and errors.
+
+- Logging is configured in `app/logger.py`.
+- The **Observer Pattern** is used through `LoggingObserver` to record calculator events.
+- Important events such as calculations, undo/redo, and history changes are logged.
+- Errors during CSV save/load operations are also recorded.
+- Log files are stored in the configured `logs/` directory.
+
+Logging settings can be managed through environment variables:
+
+```dotenv
+CALCULATOR_LOG_DIR=logs
+CALCULATOR_LOG_FILE=calculator.log
+```
+
+Logging helps with debugging, tracking application activities, and identifying errors without changing the calculator's main logic.
 
 ## Calculation History and CSV
 
